@@ -1,6 +1,6 @@
 {
-  "name": "transaction-collectors",
-  "version": "1.1.1",
+  "name": "botorio",
+  "version": "1.0.0",
   "private": true,
   "repository": {
     "type": "git",
@@ -19,7 +19,9 @@
   "dependencies": {
     "debug": "^4.1.1",
     "digitalocean-js": "^1.4.2",
-    "discord.js": "^11.4.2"
+    "discord.js": "^11.4.2",
+    "lodash": "^4.17.11",
+    "yaml": "^1.4.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -27,7 +29,9 @@
     "@babel/preset-env": "^7.3.4",
     "@babel/preset-typescript": "^7.3.3",
     "@types/debug": "^4.1.2",
+    "@types/lodash": "^4.14.123",
     "@types/node": "^11.13.0",
+    "@types/yaml": "^1.0.2",
     "cross-env": "^5.2.0",
     "tslint": "^5.13.1",
     "tslint-config-prettier": "^1.18.0",

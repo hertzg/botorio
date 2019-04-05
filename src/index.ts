@@ -1,5 +1,6 @@
 import Discord, { Message } from 'discord.js'
 import { DigitalOcean } from 'digitalocean-js'
+import { stringify } from './utils'
 
 const discordToken = process.env.DISCORD_TOKEN,
   digitalOceanToken = process.env.DIGITAL_OCEAN_TOKEN,
@@ -18,44 +19,91 @@ discord.once('ready', async () => {
   console.log('Botorio ready!')
 })
 
+const commandMap = new Map<string, (msg: Message) => Promise<void> | void>()
+commandMap.set('!status', async (msg) => {
+  const {
+    id,
+    status,
+    name,
+    vcpus,
+    memory,
+    disk,
+    networks,
+  } = await digitalOcean.droplets.getExistingDroplet(digitalOceanDropletId)
+
+  await msg.reply(
+    stringify({
+      id,
+      status,
+      name,
+      vcpus,
+      memory,
+      disk,
+      networks,
+    }),
+  )
+})
+
+commandMap.set('!poweroff', async (msg) => {
+  const action = await digitalOcean.dropletActions.powerOffDroplet(
+    digitalOceanDropletId,
+  )
+  await msg.reply(
+    `Shutting down... ${stringify({
+      id: action.id,
+      resource_id: action.resource_id,
+      status: action.status,
+      type: action.type,
+      started_at: action.started_at,
+      completed_at: action.completed_at,
+    })}`,
+  )
+})
+
+commandMap.set('!poweron', async (msg) => {
+  const action = await digitalOcean.dropletActions.powerOnDroplet(
+    digitalOceanDropletId,
+  )
+  await msg.reply(
+    `Booting... ${stringify({
+      id: action.id,
+      resource_id: action.resource_id,
+      status: action.status,
+      type: action.type,
+      started_at: action.started_at,
+      completed_at: action.completed_at,
+    })}`,
+  )
+})
+
+commandMap.set('!help', async (msg) => {
+  const replyMsg = await msg.reply(
+    '```\n' +
+      '!power - Check the status of droplet\n' +
+      '!poweroff - Power off the droplet\n' +
+      '!poweron - Power on the droplet\n' +
+      '```',
+  )
+  const replyMsgs: Message[] = Array.isArray(replyMsg) ? replyMsg : [replyMsg]
+
+  await Promise.all([...replyMsgs.map((m) => m.delete(5000)), msg.delete(5000)])
+})
+
 discord.on('message', async (msg) => {
   try {
     if (msg.author.id === discord.user.id) return
+    const body = msg.content
 
-    let action
-    switch (msg.content) {
-      case '!poweroff':
-        action = await digitalOcean.dropletActions.powerOffDroplet(
-          digitalOceanDropletId,
-        )
-
-        break
-      case '!poweron':
-        action = await digitalOcean.dropletActions.powerOnDroplet(
-          digitalOceanDropletId,
-        )
-        break
-      case '!help':
-      default:
-        const replyMsg = await msg.reply(
-          '```\n!poweroff - Power off the droplet\n!poweron - Power on the droplet```',
-        )
-        const replyMsgs: Message[] = Array.isArray(replyMsg)
-          ? replyMsg
-          : [replyMsg]
-
-        await Promise.all([
-          ...replyMsgs.map((m) => m.delete(5000)),
-          msg.delete(5000),
-        ])
-        break
-    }
-
-    if (action) {
-      await msg.reply(`Done. \`\`\`js${'\n' + JSON.stringify(action)}\`\`\``)
+    const handler = commandMap.get(body)
+    if (handler) {
+      await handler(msg)
+    } else {
+      const help = commandMap.get('!help')
+      if (!help) return
+      await help(msg)
     }
   } catch (e) {
-    await msg.reply(`Oops. \`\`\`js${'\n' + JSON.stringify(e.stack)}\`\`\``)
+    await msg.reply(`Oops. ${stringify(e.stack)}`)
   }
 })
 
