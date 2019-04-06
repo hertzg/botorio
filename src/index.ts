@@ -1,5 +1,5 @@
 import Discord, { Message } from 'discord.js'
-import { DigitalOcean } from 'digitalocean-js'
+import { Action, DigitalOcean } from 'digitalocean-js'
 import { stringify } from './utils'
 
 const discordToken = process.env.DISCORD_TOKEN,
@@ -44,44 +44,57 @@ commandMap.set('!status', async (msg) => {
   )
 })
 
+function makePowerActionMessage(action: Action) {
+  return stringify({
+    id: action.id,
+    resource_id: action.resource_id,
+    status: action.status,
+    type: action.type,
+    started_at: action.started_at,
+    completed_at: action.completed_at,
+  })
+}
+
 commandMap.set('!poweroff', async (msg) => {
   const action = await digitalOcean.dropletActions.powerOffDroplet(
     digitalOceanDropletId,
   )
-  await msg.reply(
-    `Shutting down... ${stringify({
-      id: action.id,
-      resource_id: action.resource_id,
-      status: action.status,
-      type: action.type,
-      started_at: action.started_at,
-      completed_at: action.completed_at,
-    })}`,
-  )
+
+  const _replyMsgs = await msg.reply(makePowerActionMessage(action))
+  const replyMsg: Message = Array.isArray(_replyMsgs)
+    ? _replyMsgs[0]
+    : _replyMsgs
+
+  let curAction: Action = action
+  do {
+    curAction = await digitalOcean.actions.getExistingAction(curAction.id)
+    await replyMsg.edit(makePowerActionMessage(curAction))
+  } while (curAction && !curAction.completed_at)
 })
 
 commandMap.set('!poweron', async (msg) => {
   const action = await digitalOcean.dropletActions.powerOnDroplet(
     digitalOceanDropletId,
   )
-  await msg.reply(
-    `Booting... ${stringify({
-      id: action.id,
-      resource_id: action.resource_id,
-      status: action.status,
-      type: action.type,
-      started_at: action.started_at,
-      completed_at: action.completed_at,
-    })}`,
-  )
+  const _replyMsgs = await msg.reply(makePowerActionMessage(action))
+  const replyMsg: Message = Array.isArray(_replyMsgs)
+    ? _replyMsgs[0]
+    : _replyMsgs
+
+  let curAction: Action = action
+  do {
+    curAction = await digitalOcean.actions.getExistingAction(curAction.id)
+    await replyMsg.edit(makePowerActionMessage(curAction))
+  } while (curAction && !curAction.completed_at)
 })
 
 commandMap.set('!help', async (msg) => {
   const replyMsg = await msg.reply(
     '```\n' +
-      '!power - Check the status of droplet\n' +
+      '!status - Reports the status of droplet\n' +
       '!poweroff - Power off the droplet\n' +
       '!poweron - Power on the droplet\n' +
+      '!help - Shows this help for 5sec\n' +
       '```',
   )
   const replyMsgs: Message[] = Array.isArray(replyMsg) ? replyMsg : [replyMsg]
