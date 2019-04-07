@@ -1,25 +1,63 @@
 import Discord, { Message } from 'discord.js'
 import { Action, DigitalOcean } from 'digitalocean-js'
-import { stringify } from './utils'
+import { ensureEnvKeys, EnvKeyRuleType, stringify } from './utils'
+import RCon from 'rcon-ts'
 
-const discordToken = process.env.DISCORD_TOKEN,
-  digitalOceanToken = process.env.DIGITAL_OCEAN_TOKEN,
-  digitalOceanDropletId = Number(process.env.DIGITAL_OCEAN_DROPLET_ID)
-
-if (!discordToken || !digitalOceanToken || isNaN(digitalOceanDropletId)) {
-  throw new Error(
-    `Missing DISCORD_TOKEN or DIGITAL_OCEAN_TOKEN or DIGITAL_OCEAN_DROPLET_ID`,
-  )
-}
+const [
+  discordToken,
+  digitalOceanToken,
+  digitalOceanDropletId,
+  rconPort,
+  rconHost,
+  rconPassword,
+] = ensureEnvKeys([
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'DISCORD_TOKEN' },
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'DIGITAL_OCEAN_TOKEN' },
+  { type: EnvKeyRuleType.NON_NAN_NUMBER, key: 'DIGITAL_OCEAN_DROPLET_ID' },
+  { type: EnvKeyRuleType.NON_NAN_NUMBER, key: 'FACTORIO_RCON_PORT' },
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_RCON_HOST' },
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_RCON_PASSWORD' },
+])
 
 const discord = new Discord.Client(),
-  digitalOcean = new DigitalOcean(digitalOceanToken)
+  digitalOcean = new DigitalOcean(digitalOceanToken),
+  factorioRCon = new RCon({
+    host: rconHost,
+    port: rconPort,
+    password: rconPassword,
+  })
 
 discord.once('ready', async () => {
   console.log('Botorio ready!')
 })
 
 const commandMap = new Map<string, (msg: Message) => Promise<void> | void>()
+commandMap.set('!players', async (msg) => {
+  const _replyMsgs = await msg.reply('Working...')
+  const replyMsg: Message = Array.isArray(_replyMsgs)
+    ? _replyMsgs[0]
+    : _replyMsgs
+
+  let result
+  try {
+    result = await factorioRCon.session(async (rcon) =>
+      [
+        await rcon.send('/players online'),
+        await rcon.send('/players'),
+      ].concat(),
+    )
+    await replyMsg.edit(stringify(result))
+  } catch (err) {
+    let msg: any
+    if (err && err.innerException && err.innerException.errno === 'ECONNREFUSED') {
+      msg = 'Unable to connect to Factorio RCON (Is the droplet running?)'
+    } else {
+      msg = err
+    }
+    await replyMsg.edit(stringify(msg))
+  }
+})
+
 commandMap.set('!status', async (msg) => {
   const {
     id,
@@ -88,9 +126,15 @@ commandMap.set('!poweron', async (msg) => {
   } while (curAction && !curAction.completed_at)
 })
 
+commandMap.set('!cls', async (msg) => {
+  const messages = await msg.channel.fetchMessages({ limit: 100 })
+  await msg.channel.bulkDelete(messages)
+})
+
 commandMap.set('!help', async (msg) => {
   const replyMsg = await msg.reply(
     '```\n' +
+      '!players - Reports the list of players\n' +
       '!status - Reports the status of droplet\n' +
       '!poweroff - Power off the droplet\n' +
       '!poweron - Power on the droplet\n' +

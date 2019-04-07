@@ -21,7 +21,8 @@
     "digitalocean-js": "^1.4.2",
     "discord.js": "^11.4.2",
     "lodash": "^4.17.11",
-    "yaml": "^1.4.0"
+    "yaml": "^1.4.0",
+    "rcon-ts": "^1.2.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
