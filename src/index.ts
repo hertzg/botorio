@@ -49,7 +49,61 @@ commandMap.set('!players', async (msg) => {
     await replyMsg.edit(stringify(result))
   } catch (err) {
     let msg: any
-    if (err && err.innerException && err.innerException.errno === 'ECONNREFUSED') {
+    if (
+      err &&
+      err.innerException &&
+      err.innerException.errno === 'ECONNREFUSED'
+    ) {
+      msg = 'Unable to connect to Factorio RCON (Is the droplet running?)'
+    } else {
+      msg = err
+    }
+    await replyMsg.edit(stringify(msg))
+  }
+})
+
+commandMap.set('!save', async (msg) => {
+  const _replyMsgs = await msg.reply('Working...')
+  const replyMsg: Message = Array.isArray(_replyMsgs)
+    ? _replyMsgs[0]
+    : _replyMsgs
+
+  let result
+  try {
+    result = await factorioRCon.session((rcon) => rcon.send('/server-save'))
+    await replyMsg.edit(stringify(result))
+  } catch (err) {
+    let msg: any
+    if (
+      err &&
+      err.innerException &&
+      err.innerException.errno === 'ECONNREFUSED'
+    ) {
+      msg = 'Unable to connect to Factorio RCON (Is the droplet running?)'
+    } else {
+      msg = err
+    }
+    await replyMsg.edit(stringify(msg))
+  }
+})
+
+commandMap.set('!fversion', async (msg) => {
+  const _replyMsgs = await msg.reply('Working...')
+  const replyMsg: Message = Array.isArray(_replyMsgs)
+    ? _replyMsgs[0]
+    : _replyMsgs
+
+  let result
+  try {
+    result = await factorioRCon.session((rcon) => rcon.send('/version'))
+    await replyMsg.edit(stringify(result))
+  } catch (err) {
+    let msg: any
+    if (
+      err &&
+      err.innerException &&
+      err.innerException.errno === 'ECONNREFUSED'
+    ) {
       msg = 'Unable to connect to Factorio RCON (Is the droplet running?)'
     } else {
       msg = err
@@ -135,6 +189,8 @@ commandMap.set('!help', async (msg) => {
   const replyMsg = await msg.reply(
     '```\n' +
       '!players - Reports the list of players\n' +
+      '!save - Saves the game map\n' +
+      '!fversion - Reports game version\n' +
       '!status - Reports the status of droplet\n' +
       '!poweroff - Power off the droplet\n' +
       '!poweron - Power on the droplet\n' +
