@@ -21,8 +21,10 @@
     "digitalocean-js": "^1.4.2",
     "discord.js": "^11.4.2",
     "lodash": "^4.17.11",
+    "rcon-ts": "^1.2.3",
     "yaml": "^1.4.0",
-    "rcon-ts": "^1.2.3"
+    "minimist": "^1.2.0",
+    "lodash-ts": "^1.2.7"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -30,7 +32,7 @@
     "@babel/preset-env": "^7.3.4",
     "@babel/preset-typescript": "^7.3.3",
     "@types/debug": "^4.1.2",
-    "@types/lodash": "^4.14.123",
+    "@types/minimist": "^1.2.0",
     "@types/node": "^11.13.0",
     "@types/yaml": "^1.0.2",
     "cross-env": "^5.2.0",
