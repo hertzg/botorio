@@ -11,8 +11,8 @@ import {
 import RCon from 'rcon-ts'
 import Rcon from 'rcon-ts'
 import Minimist from 'minimist'
-import * as handlers from './handlers'
-import defaultHandler from './handlers'
+import handlers from './handlers'
+import defaultHandler from './handlers/help'
 import LodashGet from 'lodash-ts/get'
 
 const [
@@ -40,7 +40,7 @@ const discord = new Discord.Client(),
   })
 
 discord.once('ready', async () => {
-  console.log('Botorio ready!')
+  console.log(`${discord.user.username} ready!`)
 })
 
 export interface HandlerContext {
@@ -93,9 +93,10 @@ discord.on('message', async (message) => {
 
     message.channel.startTyping()
     await handler(context)
-    message.channel.stopTyping()
   } catch (e) {
     await message.reply(`Oops. ${stringify(e.stack)}`)
+  } finally {
+    message.channel.stopTyping()
   }
 })
 

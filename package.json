@@ -20,11 +20,13 @@
     "debug": "^4.1.1",
     "digitalocean-js": "^1.4.2",
     "discord.js": "^11.4.2",
-    "lodash": "^4.17.11",
-    "rcon-ts": "^1.2.3",
-    "yaml": "^1.4.0",
+    "lodash-ts": "^1.2.7",
     "minimist": "^1.2.0",
-    "lodash-ts": "^1.2.7"
+    "rcon-ts": "^1.2.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "semver": "^6.0.0",
+    "yaml": "^1.4.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
@@ -34,6 +36,9 @@
     "@types/debug": "^4.1.2",
     "@types/minimist": "^1.2.0",
     "@types/node": "^11.13.0",
+    "@types/request": "^2.48.1",
+    "@types/request-promise": "^4.1.42",
+    "@types/semver": "^6.0.0",
     "@types/yaml": "^1.0.2",
     "cross-env": "^5.2.0",
     "tslint": "^5.13.1",
