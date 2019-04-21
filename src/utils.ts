@@ -53,4 +53,4 @@ export const isFirstMention = (content: string, id: string) =>
 
 export const isAuthorBot = (msg: Message) => msg.author.bot
 
-export const isGuildUnavailable = (msg: Message) => !msg.guild.available
+export const isGuildUnavailable = (msg: Message) => !msg.guild || !msg.guild.available
