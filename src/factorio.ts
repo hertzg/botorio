@@ -3,8 +3,6 @@ export enum LuaCommandType {
   SILENT = 'silent-command',
 }
 
-export const shout = (text: string) => cmd('shout', text)
-
 export const cmd = (name: string, ...args: string[]) =>
   `/${name}${args.length ? ' ' + args.join(' ') : ''}`
 

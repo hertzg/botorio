@@ -1,3 +1,4 @@
+import './bootstrap'
 import Discord, { Message } from 'discord.js'
 import { DigitalOcean } from 'digitalocean-js'
 import {
@@ -9,7 +10,6 @@ import {
   stringify,
 } from './utils'
 import RCon from 'rcon-ts'
-import Rcon from 'rcon-ts'
 import Minimist from 'minimist'
 import handlers from './handlers'
 import defaultHandler from './handlers/help'
@@ -40,7 +40,7 @@ const discord = new Discord.Client(),
   })
 
 discord.once('ready', async () => {
-  console.log(`${discord.user.username} ready!`)
+  console.log(`Discord Bot "${discord.user.username}" ready!`)
 })
 
 export interface HandlerContext {
@@ -48,7 +48,7 @@ export interface HandlerContext {
   args: Minimist.ParsedArgs
   discord: Discord.Client
   digitalOcean: DigitalOcean
-  factorioRCon: Rcon
+  factorioRCon: RCon
   variables: {
     discordToken: string
     digitalOceanToken: string
@@ -95,9 +95,10 @@ discord.on('message', async (message) => {
     await handler(context)
   } catch (e) {
     await message.reply(`Oops. ${stringify(e.stack)}`)
-  } finally {
-    message.channel.stopTyping()
   }
+  message.channel.stopTyping()
 })
 
-discord.login(discordToken)
+discord.login(discordToken).catch((err) => {
+  throw err
+})
