@@ -1,4 +1,4 @@
-import './bootstrap'
+import { Package } from './bootstrap'
 import Discord, { Message } from 'discord.js'
 import { DigitalOcean } from 'digitalocean-js'
 import {
@@ -44,6 +44,7 @@ discord.once('ready', async () => {
 })
 
 export interface HandlerContext {
+  version: string
   message: Message
   args: Minimist.ParsedArgs
   discord: Discord.Client
@@ -76,6 +77,7 @@ discord.on('message', async (message) => {
     const handler = LodashGet(handlers, commands, defaultHandler)
 
     const context: HandlerContext = {
+      version: Package.version,
       message,
       args,
       discord,

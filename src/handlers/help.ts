@@ -1,9 +1,10 @@
 import { HandlerContext } from '../index'
 
-export default async ({ message, discord }: HandlerContext) =>
+export default async ({ version, message, discord }: HandlerContext) =>
   await message.reply(
     // prettier-ignore
     '```\n' +
+    `Botorio v${version}\n` +
     `@${discord.user.username} game|factorio players - Reports the list of players\n` +
     `@${discord.user.username} game|factorio save - Saves the game map\n` +
     `@${discord.user.username} game|factorio version - Reports game version\n` +
