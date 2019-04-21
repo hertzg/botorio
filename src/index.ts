@@ -41,6 +41,10 @@ const discord = new Discord.Client(),
 
 discord.once('ready', async () => {
   console.log(`Discord Bot "${discord.user.username}" ready!`)
+
+  await discord.user.setActivity(`Botorio v${Package.version} since ${new Date()}`, {
+    type: 'PLAYING'
+  })
 })
 
 export interface HandlerContext {
