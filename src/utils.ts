@@ -1,9 +1,22 @@
 import YAML from 'yaml'
-import { Message } from 'discord.js'
+import {
+  Message,
+  MessageEditOptions,
+  MessageOptions,
+  MessageReaction,
+  RichEmbed,
+  StringResolvable,
+} from 'discord.js'
 
-export const stringify = (object: any) => {
-  return '```yaml\n' + YAML.stringify(object) + '```'
-}
+export const stringifyShort = (object: any) =>
+  codifyShort(YAML.stringify(object))
+
+export const stringify = (object: any) => codify(YAML.stringify(object), 'yaml')
+
+export const codifyShort = (code) => `\`${code}\``
+
+export const codify = (code: string, lang: string = '') =>
+  `\`\`\`${lang}\n${code}\n\`\`\``
 
 export enum EnvKeyRuleType {
   NON_EMPTY_STRING = 'non-empty-string',
@@ -53,4 +66,55 @@ export const isFirstMention = (content: string, id: string) =>
 
 export const isAuthorBot = (msg: Message) => msg.author.bot
 
-export const isGuildUnavailable = (msg: Message) => !msg.guild || !msg.guild.available
+export const isGuildUnavailable = (msg: Message) =>
+  !msg.guild || !msg.guild.available
+
+const EMOJI_WAITING = '⌛'
+const EMOJI_WORKING = '👁'
+const EMOJI_DONE = '✅'
+
+export const createInteractiveResponse = async (
+  message: Message,
+  content: StringResolvable,
+  options?: MessageOptions,
+) => {
+  let waitingReaction: MessageReaction | null = await message.react(
+    EMOJI_WAITING,
+  )
+  const _reply = await message.reply(content, options)
+  // I have no idea when reply returns an array of messages
+  // Need to rework this when such case occurs
+  const reply: Message = Array.isArray(_reply) ? _reply[0] : _reply
+
+  let workingReaction: MessageReaction | null = null
+  return {
+    async start() {
+      if (waitingReaction) {
+        await waitingReaction.remove()
+        waitingReaction = null
+      }
+      workingReaction = await message.react(EMOJI_WORKING)
+    },
+    async update(
+      content: StringResolvable,
+      options?: MessageEditOptions | RichEmbed,
+    ) {
+      await reply.edit(content, options)
+    },
+
+    async finish() {
+      const tasks: Promise<any>[] = [message.react(EMOJI_DONE)]
+      if (waitingReaction) {
+        tasks.push(waitingReaction.remove())
+        if (waitingReaction) {
+          waitingReaction = null
+        }
+      }
+      if (workingReaction) {
+        tasks.push(workingReaction.remove())
+        workingReaction = null
+      }
+      await Promise.all(tasks)
+    },
+  }
+}

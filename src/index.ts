@@ -1,13 +1,15 @@
 import { Package } from './bootstrap'
-import Discord, { Message } from 'discord.js'
+import Discord, { Attachment, Message } from 'discord.js'
 import { DigitalOcean } from 'digitalocean-js'
+import YAML from 'yaml'
 import {
+  codify,
+  codifyShort,
   ensureEnvKeys,
   EnvKeyRuleType,
   isAuthorBot,
   isFirstMention,
   isGuildUnavailable,
-  stringify,
 } from './utils'
 import RCon from 'rcon-ts'
 import Minimist from 'minimist'
@@ -43,7 +45,7 @@ discord.once('ready', async () => {
   console.log(`Discord Bot "${discord.user.username}" ready!`)
 
   await discord.user.setActivity(`Botorio v${Package.version}`, {
-    type: 'PLAYING'
+    type: 'PLAYING',
   })
 })
 
@@ -63,6 +65,8 @@ export interface HandlerContext {
     rconPassword: string
   }
 }
+
+const DISCORD_MESSAGE_CONTENT_LIMIT = 1980
 
 discord.on('message', async (message) => {
   try {
@@ -98,9 +102,30 @@ discord.on('message', async (message) => {
     }
 
     message.channel.startTyping()
-    await handler(context)
+
+    if (typeof handler !== 'function') {
+      await message.reply('This is not a valid command.')
+    } else {
+      await handler(context)
+    }
   } catch (e) {
-    await message.reply(`Oops. ${stringify(e.stack)}`)
+    const stackTrace = YAML.stringify(e.stack),
+      description = `Oops. ${codifyShort(
+        `Error: ${YAML.stringify(e.message)}`,
+      )}`,
+      text = `${description}\n${codify(stackTrace)}`
+
+    if (text.length <= DISCORD_MESSAGE_CONTENT_LIMIT) {
+      await message.reply(text)
+    } else {
+      await message.reply(`${description}\nStack trace attached.`, {
+        files: [
+          new Attachment(new Buffer(stackTrace, 'utf8'), 'stacktrace.yaml.txt'),
+        ],
+      })
+    }
+
+    console.error(text)
   }
   message.channel.stopTyping()
 })
