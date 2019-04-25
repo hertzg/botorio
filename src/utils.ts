@@ -9,6 +9,7 @@ import {
   RichEmbed,
   StringResolvable,
 } from 'discord.js'
+import { Client, ClientChannel } from 'ssh2'
 
 export const stringifyShort = (object: any) =>
   codifyShort(YAML.stringify(object))
@@ -136,4 +137,20 @@ export const createInteractiveResponse = async (
       await Promise.all(tasks)
     },
   }
+}
+export const sshExec = (config, command: string): Promise<ClientChannel> => {
+  return new Promise((resolve, reject) => {
+    const conn = new Client()
+    conn.on('error', reject)
+    conn.on('ready', () => {
+      conn.exec(command, (err, stream) => {
+        if (err) return reject(err)
+        stream.once('close', () => {
+          conn.end()
+        })
+        resolve(stream)
+      })
+    })
+    conn.connect(config)
+  })
 }

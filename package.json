@@ -29,6 +29,7 @@
     "request-promise": "^4.2.4",
     "semver": "^6.0.0",
     "source-map-support": "^0.5.12",
+    "ssh2": "^0.8.3",
     "synchd": "^1.1.0",
     "yaml": "^1.4.0"
   },
@@ -45,6 +46,7 @@
     "@types/request": "^2.48.1",
     "@types/request-promise": "^4.1.42",
     "@types/semver": "^6.0.0",
+    "@types/ssh2": "^0.5.38",
     "@types/yaml": "^1.0.2",
     "cross-env": "^5.2.0",
     "tslint": "^5.13.1",

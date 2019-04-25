@@ -24,6 +24,10 @@ const [
   rconPort,
   rconHost,
   rconPassword,
+  sshHost,
+  sshPort,
+  sshUser,
+  sshIdentity,
 ] = ensureEnvKeys([
   { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'DISCORD_TOKEN' },
   { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'DIGITAL_OCEAN_TOKEN' },
@@ -31,6 +35,10 @@ const [
   { type: EnvKeyRuleType.NON_NAN_NUMBER, key: 'FACTORIO_RCON_PORT' },
   { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_RCON_HOST' },
   { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_RCON_PASSWORD' },
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_SSH_HOST' },
+  { type: EnvKeyRuleType.NON_NAN_NUMBER, key: 'FACTORIO_SSH_PORT' },
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_SSH_USER' },
+  { type: EnvKeyRuleType.NON_EMPTY_STRING, key: 'FACTORIO_SSH_IDENTITY' },
 ])
 
 const discord = new Discord.Client(),
@@ -63,6 +71,10 @@ export interface HandlerContext {
     rconPort: number
     rconHost: string
     rconPassword: string
+    sshHost: string
+    sshPort: number
+    sshUser: string
+    sshIdentity: string
   }
 }
 
@@ -98,6 +110,10 @@ discord.on('message', async (message) => {
         rconPort,
         rconHost,
         rconPassword,
+        sshHost,
+        sshPort,
+        sshUser,
+        sshIdentity,
       },
     }
 
