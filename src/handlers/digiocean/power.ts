@@ -15,6 +15,8 @@ const makePowerActionMessage = (action: Action) =>
     completed_at: action.completed_at,
   })
 
+const MAX_STATUS_CHECKS = 30
+
 export default async (context: HandlerContext) => {
   const {
     message,
@@ -38,12 +40,27 @@ export default async (context: HandlerContext) => {
 
     await response.update(makePowerActionMessage(action))
 
-    let curAction: Action = action
+    let curAction: Action = action,
+      tries = 0
     do {
       curAction = await digitalOcean.actions.getExistingAction(curAction.id)
       await response.update(makePowerActionMessage(curAction))
-    } while (curAction && !curAction.completed_at)
+    } while (
+      tries++ < MAX_STATUS_CHECKS &&
+      (curAction && !curAction.completed_at)
+    )
 
-    await response.success()
+    if (tries >= MAX_STATUS_CHECKS) {
+      await Promise.all([
+        response.fail(),
+        response.update(
+          `Maximum number of ${MAX_STATUS_CHECKS} checks reached\n` +
+            `Last result: ${makePowerActionMessage(curAction)}`,
+        ),
+      ])
+      await response.fail()
+    } else {
+      await response.success()
+    }
   })
 }
