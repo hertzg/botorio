@@ -1,6 +1,5 @@
 import { HandlerContext } from '../../index'
-import { Message } from 'discord.js'
-import { stringify } from '../../utils'
+import { createInteractiveResponse, stringify } from '../../utils'
 
 import Request from 'request-promise'
 import Semver from 'semver'
@@ -53,35 +52,28 @@ const getLatestVersions = async (variant = 'core-linux_headless64') => {
   }
 }
 
-export default async ({ message, factorioRCon }: HandlerContext) => {
-  const _replyMsgs = await message.reply('Working...')
-  const replyMsg: Message = Array.isArray(_replyMsgs)
-    ? _replyMsgs[0]
-    : _replyMsgs
+export const EMOJI_WARNING = '⚠'
 
+export default async ({ message, factorioRCon }: HandlerContext) => {
+  const response = await createInteractiveResponse(message)
+
+  await response.start()
+  let current: string | null = null
+
+  await response.update('`Checking current running version...`')
   try {
-    let current: string | null = null
-    try {
-      current = await factorioRCon.session((rcon) => rcon.send('/version'))
-    } catch (ex) {}
-    const latest = await getLatestVersions()
-    await replyMsg.edit(
-      stringify({
-        current,
-        ...latest,
-      }),
-    )
-  } catch (err) {
-    let msg: any
-    if (
-      err &&
-      err.innerException &&
-      err.innerException.errno === 'ECONNREFUSED'
-    ) {
-      msg = 'Unable to connect to Factorio RCON (Is the droplet running?)'
-    } else {
-      msg = err
-    }
-    await replyMsg.edit(stringify(msg))
+    current = await factorioRCon.session((rcon) => rcon.send('/version'))
+  } catch (ex) {
+    await response.react(EMOJI_WARNING)
   }
+
+  await response.update('`Checking latest game versions...`.')
+  const latest = await getLatestVersions()
+  await response.update(
+    stringify({
+      current: current ? current : 'null (is server running?)',
+      ...latest,
+    }),
+  )
+  await response.success()
 }
