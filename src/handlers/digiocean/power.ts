@@ -43,8 +43,12 @@ export default async (context: HandlerContext) => {
     let curAction: Action = action,
       tries = 0
     do {
-      curAction = await digitalOcean.actions.getExistingAction(curAction.id)
+      try {
+        curAction = await digitalOcean.actions.getExistingAction(curAction.id)
+      } catch (e) {}
       await response.update(makePowerActionMessage(curAction))
+      // Delay ever check for minimum of 1s
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     } while (
       tries++ < MAX_STATUS_CHECKS &&
       (curAction && !curAction.completed_at)
