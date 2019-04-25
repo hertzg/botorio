@@ -29,6 +29,7 @@
     "request-promise": "^4.2.4",
     "semver": "^6.0.0",
     "source-map-support": "^0.5.12",
+    "synchd": "^1.1.0",
     "yaml": "^1.4.0"
   },
   "devDependencies": {

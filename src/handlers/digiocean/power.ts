@@ -1,8 +1,8 @@
 import { Action } from 'digitalocean-js'
-import { stringify } from '../../utils'
+import { createInteractiveResponse, stringify } from '../../utils'
 import { HandlerContext } from '../../index'
-import { Message } from 'discord.js'
 import status from './status'
+import { synchd } from 'synchd'
 
 const makePowerActionMessage = (action: Action) =>
   stringify({
@@ -27,17 +27,23 @@ export default async (context: HandlerContext) => {
     return await status(context)
   }
 
-  const action = await digitalOcean.dropletActions[
-    args.on ? 'powerOnDroplet' : 'powerOffDroplet'
-  ](digitalOceanDropletId)
-  const _replyMsgs = await message.reply(makePowerActionMessage(action))
-  const replyMsg: Message = Array.isArray(_replyMsgs)
-    ? _replyMsgs[0]
-    : _replyMsgs
+  const response = await createInteractiveResponse(message, 'Waiting...')
+  await synchd(digitalOcean, async () => {
+    await response.start()
+    await response.update('Working...')
 
-  let curAction: Action = action
-  do {
-    curAction = await digitalOcean.actions.getExistingAction(curAction.id)
-    await replyMsg.edit(makePowerActionMessage(curAction))
-  } while (curAction && !curAction.completed_at)
+    const action = await digitalOcean.dropletActions[
+      args.on ? 'powerOnDroplet' : 'powerOffDroplet'
+    ](digitalOceanDropletId)
+
+    await response.update(makePowerActionMessage(action))
+
+    let curAction: Action = action
+    do {
+      curAction = await digitalOcean.actions.getExistingAction(curAction.id)
+      await response.update(makePowerActionMessage(curAction))
+    } while (curAction && !curAction.completed_at)
+
+    await response.finish()
+  })
 }
