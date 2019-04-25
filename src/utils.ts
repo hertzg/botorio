@@ -1,9 +1,11 @@
 import YAML from 'yaml'
 import {
+  Emoji,
   Message,
   MessageEditOptions,
   MessageOptions,
   MessageReaction,
+  ReactionEmoji,
   RichEmbed,
   StringResolvable,
 } from 'discord.js'
@@ -71,11 +73,12 @@ export const isGuildUnavailable = (msg: Message) =>
 
 const EMOJI_WAITING = '⌛'
 const EMOJI_WORKING = '👁'
-const EMOJI_DONE = '✅'
+const EMOJI_SUCCESS = '✅'
+const EMOJI_FAILURE = '🛑'
 
 export const createInteractiveResponse = async (
   message: Message,
-  content: StringResolvable,
+  content: StringResolvable = 'Waiting...',
   options?: MessageOptions,
 ) => {
   let waitingReaction: MessageReaction | null = await message.react(
@@ -101,9 +104,25 @@ export const createInteractiveResponse = async (
     ) {
       await reply.edit(content, options)
     },
-
-    async finish() {
-      const tasks: Promise<any>[] = [message.react(EMOJI_DONE)]
+    async react(emoji: string | Emoji | ReactionEmoji) {
+      await message.react(emoji)
+    },
+    async success() {
+      const tasks: Promise<any>[] = [message.react(EMOJI_SUCCESS)]
+      if (waitingReaction) {
+        tasks.push(waitingReaction.remove())
+        if (waitingReaction) {
+          waitingReaction = null
+        }
+      }
+      if (workingReaction) {
+        tasks.push(workingReaction.remove())
+        workingReaction = null
+      }
+      await Promise.all(tasks)
+    },
+    async fail() {
+      const tasks: Promise<any>[] = [message.react(EMOJI_FAILURE)]
       if (waitingReaction) {
         tasks.push(waitingReaction.remove())
         if (waitingReaction) {

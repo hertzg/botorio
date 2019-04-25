@@ -44,6 +44,6 @@ export default async (context: HandlerContext) => {
       await response.update(makePowerActionMessage(curAction))
     } while (curAction && !curAction.completed_at)
 
-    await response.finish()
+    await response.success()
   })
 }
