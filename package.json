@@ -7,14 +7,15 @@
     "url": "git@github.com:hertzg/botorio.git"
   },
   "scripts": {
+    "start:ts": "ts-node src/index.ts",
     "type-check": "tsc --noEmit",
-    "type-check:watch": "npm run type-check -- --watch",
-    "build": "npm run build:types && npm run build:js",
+    "type-check:watch": "yarn run type-check -- --watch",
+    "build": "yarn run build:types && yarn run build:js",
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "babel src --out-dir build --extensions \".ts,.tsx\" --source-maps inline",
     "pm2-start": "pm2 startOrRestart ecosystem.config.js",
     "prettier": "prettier",
-    "update": "git pull && rm -rf node_modules/ build/ && npm ci && npm run build && npm run pm2-start"
+    "update": "git pull && rm -rf node_modules/ build/ && yarn ci && yarn run build && yarn run pm2-start"
   },
   "dependencies": {
     "debug": "^4.1.1",
@@ -51,6 +52,7 @@
     "cross-env": "^5.2.0",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.2",
+    "ts-node": "^8.5.4"
   }
 }
