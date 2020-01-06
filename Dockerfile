@@ -1,11 +1,22 @@
-FROM node:13
+FROM node:13-alpine as builder
 
 WORKDIR /app
 
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --no-cache
 
-ENV DISCORD_TOKEN="dd" \
+COPY . .
+RUN yarn run build:js
+
+FROM node:13-alpine
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --no-cache --production
+
+COPY --from=builder /app/build ./build
+
+ENV DISCORD_TOKEN="" \
  DIGITAL_OCEAN_TOKEN="" \
  DIGITAL_OCEAN_DROPLET_ID="" \
  FACTORIO_RCON_PORT="27018" \
@@ -14,8 +25,7 @@ ENV DISCORD_TOKEN="dd" \
  FACTORIO_SSH_HOST="127.0.0.1" \
  FACTORIO_SSH_PORT="22" \
  FACTORIO_SSH_USER="user" \
- FACTORIO_SSH_IDENTITY="~/.ssh/id_rsa"
+ FACTORIO_SSH_IDENTITY="~/.ssh/id_rsa" \
+ DEBUG="botorio:*"
 
-COPY . .
-
-ENTRYPOINT 'yarn' 'run' 'start:ts'
+ENTRYPOINT ["node", "--optimize-for-size", "--max-old-space-size=50", "build/index.js"]
