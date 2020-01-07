@@ -28,4 +28,4 @@ ENV DISCORD_TOKEN="" \
  FACTORIO_SSH_IDENTITY="~/.ssh/id_rsa" \
  DEBUG="botorio:*"
 
-ENTRYPOINT ["node", "--optimize-for-size", "--max-old-space-size=50", "build/index.js"]
+CMD ["--optimize-for-size", "--max-old-space-size=50", "build/index.js"]
