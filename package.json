@@ -24,7 +24,7 @@
     "dotenv": "^7.0.0",
     "filesize": "^4.1.2",
     "lodash-ts": "^1.2.7",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "rcon-ts": "^1.2.3",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
